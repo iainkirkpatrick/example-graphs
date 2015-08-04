@@ -66,32 +66,6 @@ d3.csv("../data/line-graph-data.csv", function(error, data) {
         .transition()
         .ease("linear")
         .duration(3000)
-
-        //NO ANIMATION
-        // .attr("d", line);
-
-        //CHOPPY ANIMATION
-        // .attrTween("d", function(d){
-        //   //i becomes a func that takes a value within the domain
-        //   //and converts to equivalent value in the range
-        //   var i = d3.scale.quantile()
-        //     .domain([0,1])
-        //     .range(d3.range(1, data.length + 1));
-        //     // .range([1,5]);
-
-        //   return function(t) {
-        //     var interpolatedLine = data.slice(0, i(t));
-
-        //     //at each t frame, interpolatedLine is an ever-growing
-        //     //slice of the data array
-        //     console.log(interpolatedLine[0]);
-            
-        //     //recalc the entire path each frame with new data slice
-        //     return line(interpolatedLine);
-        //   }
-
-        // });
-
         //SMOOTH ANIMATIONs
         .attrTween("d", function(d){
           var i = d3.scale.linear()
