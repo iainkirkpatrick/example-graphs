@@ -2,30 +2,37 @@
 graph.innerHTML = '';
 
 //graph setup
-var margin = {top: 20, right: 20, bottom: 30, left: 50},
+var margin = {top: 20, right: 50, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-var parseDate = d3.time.format("%Y").parse;
+var parseDate = d3.time.format("%d/%m/%Y").parse;
 
 var x = d3.time.scale()
     .range([0, width]);
 
-var y = d3.scale.linear()
+var y0 = d3.scale.linear()
+    .range([height, 0]);
+var y1 = d3.scale.linear()
     .range([height, 0]);
 
 var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom");
 
-var yAxis = d3.svg.axis()
-    .scale(y)
+var yAxisLeft = d3.svg.axis()
+    .scale(y0)
     .orient("left");
+var yAxisRight = d3.svg.axis()
+    .scale(y1)
+    .orient("right");
 
-var line = d3.svg.line()
-    // .interpolate("basis")
+var line0 = d3.svg.line()
     .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.value); })
+    .y(function(d) { return y0(d.value); })
+var line1 = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y0(d.value); })
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -34,16 +41,19 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //csv parsing and graph building
-d3.csv("../data/line-graph-data.csv", function(error, data) {
+d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
 
     data.forEach(function(d) {
-      d.date = +parseDate(d.date);
-      d.value = +d.value;
+      d.Date = parseDate(d.Date);
+      d['90Day'] = +d['90Day'];
+      d.OCR = +d.OCR;
+      d.TWI = +d.TWI;
     });
 
+    console.log(data);
 
     x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extent(data, function(d) { return d.value; }));
+    y0.domain(d3.extent(data, function(d) { return d.value; }));
 
     svg.append("g")
       .attr("class", "x axis")
@@ -52,7 +62,7 @@ d3.csv("../data/line-graph-data.csv", function(error, data) {
 
     svg.append("g")
         .attr("class", "y axis")
-        .call(yAxis)
+        .call(yAxisLeft)
       .append("text");
         // .attr("transform", "rotate(-90)")
         // .attr("y", 6)
@@ -88,7 +98,7 @@ d3.csv("../data/line-graph-data.csv", function(error, data) {
 
             // console.log(interpolatedLine)
 
-            return line(interpolatedLine);
+            return line0(interpolatedLine);
           }
 
         });
