@@ -37,11 +37,10 @@ var svg = d3.select("body").append("svg")
 d3.csv("/data/line-graph-data.csv", function(error, data) {
 
     data.forEach(function(d) {
-      d.date = parseDate(d.date);
+      d.date = +parseDate(d.date);
       d.value = +d.value;
     });
 
-    console.log(data);
 
     x.domain(d3.extent(data, function(d) { return d.date; }));
     y.domain(d3.extent(data, function(d) { return d.value; }));
@@ -65,23 +64,55 @@ d3.csv("/data/line-graph-data.csv", function(error, data) {
         .datum(data)
         .attr("class", "line")
         .transition()
-        .duration(1000)
+        .ease("linear")
+        .duration(3000)
+
+        //NO ANIMATION
         // .attr("d", line);
+
+        //CHOPPY ANIMATION
+        // .attrTween("d", function(d){
+        //   //i becomes a func that takes a value within the domain
+        //   //and converts to equivalent value in the range
+        //   var i = d3.scale.quantile()
+        //     .domain([0,1])
+        //     .range(d3.range(1, data.length + 1));
+        //     // .range([1,5]);
+
+        //   return function(t) {
+        //     var interpolatedLine = data.slice(0, i(t));
+
+        //     //at each t frame, interpolatedLine is an ever-growing
+        //     //slice of the data array
+        //     console.log(interpolatedLine[0]);
+            
+        //     //recalc the entire path each frame with new data slice
+        //     return line(interpolatedLine);
+        //   }
+
+        // });
+
+        //SMOOTH ANIMATIONs
         .attrTween("d", function(d){
-          var i = d3.scale.quantile()
+          var i = d3.scale.linear()
             .domain([0,1])
-            .range(d3.range(1, data.length + 1));
+            .range([1, data.length + 1]);
 
           return function(t) {
             var flooredX = Math.floor(i(t));
             var interpolatedLine = data.slice(0, flooredX);
-            console.log(interpolatedLine)
+
 
             if(flooredX > 0 && flooredX < data.length) {
               var weight = i(t) - flooredX;
-              var weightedLineAverage = data[flooredX].y * weight + data[flooredX-1].y * (1-weight);
-              interpolatedLine.push( {"x":i(t)-1, "y":weightedLineAverage} );
+              var weightedY = data[flooredX].value * weight + data[flooredX-1].value * (1-weight);
+              var weightedX = data[flooredX].date * weight + data[flooredX-1].date * (1-weight);
+              // console.log(weightedX, weightedY)
+              // console.log(data)
+              interpolatedLine.push( {"date":weightedX, "value":weightedY} );
             }
+
+            // console.log(interpolatedLine)
       
             return line(interpolatedLine);
           }
