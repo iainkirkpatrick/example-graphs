@@ -28,7 +28,7 @@ var graphTransitionTime = 1000;
 var timePerRadian = graphTransitionTime / (Math.PI * 2);
 
 //csv parsing and graph building
-d3.csv("/data/chart-12-pie.csv", function(error, data) {
+d3.csv("../data/chart-12-pie.csv", function(error, data) {
 
     data.forEach(function(d) {
       d.Percentage = +d.Percentage;
@@ -49,7 +49,7 @@ d3.csv("/data/chart-12-pie.csv", function(error, data) {
       .ease("linear")
       .delay(function(d, i) {
         // console.log(d);
-        // return i * (1000 * (d.value/100)); 
+        // return i * (1000 * (d.value/100));
         return d.startAngle * timePerRadian;
       })
       .duration(function(d, i) {

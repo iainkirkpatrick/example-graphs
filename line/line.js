@@ -34,7 +34,7 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //csv parsing and graph building
-d3.csv("/data/line-graph-data.csv", function(error, data) {
+d3.csv("../data/line-graph-data.csv", function(error, data) {
 
     data.forEach(function(d) {
       d.date = parseDate(d.date);
@@ -82,7 +82,7 @@ d3.csv("/data/line-graph-data.csv", function(error, data) {
               var weightedLineAverage = data[flooredX].y * weight + data[flooredX-1].y * (1-weight);
               interpolatedLine.push( {"x":i(t)-1, "y":weightedLineAverage} );
             }
-      
+
             return line(interpolatedLine);
           }
 
