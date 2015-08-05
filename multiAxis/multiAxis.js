@@ -64,7 +64,7 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
 
     //draw both y axes
     svg.append("g")
-        .attr("class", "y axis")
+        .attr("class", "yLeft axis")
         .call(yAxisLeft)
       .append("text");
         // .attr("transform", "rotate(-90)")
@@ -73,7 +73,7 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
         // .style("text-anchor", "end")
         // .text("$b");
     svg.append("g")
-        .attr("class", "y axis")
+        .attr("class", "yRight axis")
         .attr("transform", "translate(" + width + " ,0)")  
         .call(yAxisRight)
       .append("text");
