@@ -138,12 +138,13 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
             var flooredX = Math.floor(i(t));
             var interpolatedLine = data.slice(0, flooredX);
             // console.log(interpolatedLine);
+            // console.log(i(t), flooredX);
 
             if(flooredX > 0 && flooredX < data.length) {
               var weight = i(t) - flooredX;
               var weightedY = data[flooredX]['90Day'] * weight + data[flooredX-1]['90Day'] * (1-weight);
               var weightedX = data[flooredX].Date * weight + data[flooredX-1].Date * (1-weight);
-              // console.log(weightedX, weightedY)
+              // console.log(data[flooredX]['90Day'] * weight, data[flooredX-1]['90Day'] * (1-weight))
               // console.log(data)
               interpolatedLine.push( {"Date":weightedX, "90Day":weightedY} );
             }
@@ -171,16 +172,17 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
 
           return function(t) {
             var flooredX = Math.floor(i(t));
-            var interpolatedLine = data.slice(0, flooredX);
-            // console.log(interpolatedLine);
+            var interpolatedLine = data.slice(-flooredX);
+            // console.log(i(t), flooredX);
 
             if(flooredX > 0 && flooredX < data.length) {
               var weight = i(t) - flooredX;
-              var weightedY = data[flooredX].OCR * weight + data[flooredX-1].OCR * (1-weight);
-              var weightedX = data[flooredX].Date * weight + data[flooredX-1].Date * (1-weight);
+              var weightedY = data[data.length - flooredX].OCR * weight + data[data.length - flooredX+1].OCR * (1-weight);
+              var weightedX = data[data.length - flooredX].Date * weight + data[data.length - flooredX+1].Date * (1-weight);
               // console.log(weightedX, weightedY)
-              // console.log(data)
-              interpolatedLine.push( {"Date":weightedX, "OCR":weightedY} );
+              // console.log(data[data.length - flooredX])
+              // console.log(weight)
+              interpolatedLine.unshift( {"Date":weightedX, "OCR":weightedY} );
             }
 
             // console.log(interpolatedLine)
