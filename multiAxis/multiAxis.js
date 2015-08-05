@@ -33,6 +33,9 @@ var line0 = d3.svg.line()
 var line1 = d3.svg.line()
     .x(function(d) { return x(d.Date); })
     .y(function(d) { return y1(d['90Day']); })
+var line2 = d3.svg.line()
+    .x(function(d) { return x(d.Date); })
+    .y(function(d) { return y1(d.OCR); })
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -50,11 +53,16 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
       d.TWI = +d.TWI;
     });
 
-    // console.log(data);
-
+    //domains determine how large the range is for the axis.
+    //generally, extracted from the data as min-max (extent)
+    //ideally, programatically 'pad' the extent rather than hardcode?
     x.domain(d3.extent(data, function(d) { return d.Date; }));
-    y0.domain(d3.extent(data, function(d) { return d.TWI; }));
-    y1.domain(d3.extent(data, function(d) { return d['90Day']; }));
+    // y0.domain(d3.extent(data, function(d) { return d.TWI; }));
+    y0.domain([70,85]);
+    // y1.domain(d3.extent(data, function(d) { return d['90Day']; }));
+    y1.domain([2,5]);
+
+    // console.log(d3.extent(data, function(d) { return d['90Day']; }));
 
     //draw x axis
     svg.append("g")
@@ -143,6 +151,41 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
             // console.log(interpolatedLine)
 
             return line1(interpolatedLine);
+          }
+
+        });
+
+    //draw OCR
+    svg.append("path")
+        .datum(data)
+        .attr("class", "line1")
+        .transition()
+        .delay(1000)
+        .ease("linear")
+        .duration(1000)
+        //SMOOTH ANIMATIONs
+        .attrTween("d", function(d){
+          var i = d3.scale.linear()
+            .domain([0,1])
+            .range([1, data.length + 1]);
+
+          return function(t) {
+            var flooredX = Math.floor(i(t));
+            var interpolatedLine = data.slice(0, flooredX);
+            // console.log(interpolatedLine);
+
+            if(flooredX > 0 && flooredX < data.length) {
+              var weight = i(t) - flooredX;
+              var weightedY = data[flooredX].OCR * weight + data[flooredX-1].OCR * (1-weight);
+              var weightedX = data[flooredX].Date * weight + data[flooredX-1].Date * (1-weight);
+              // console.log(weightedX, weightedY)
+              // console.log(data)
+              interpolatedLine.push( {"Date":weightedX, "OCR":weightedY} );
+            }
+
+            // console.log(interpolatedLine)
+
+            return line2(interpolatedLine);
           }
 
         });
