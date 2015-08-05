@@ -41,6 +41,7 @@ d3.csv("../data/line-graph-data.csv", function(error, data) {
       d.value = +d.value;
     });
 
+    console.log(data)
 
     x.domain(d3.extent(data, function(d) { return d.date; }));
     y.domain(d3.extent(data, function(d) { return d.value; }));

@@ -6,7 +6,7 @@ var margin = {top: 20, right: 50, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-var parseDate = d3.time.format("%d/%m/%Y").parse;
+var parseDate = d3.time.format("%d/%m/%y").parse;
 
 var x = d3.time.scale()
     .range([0, width]);
@@ -28,11 +28,11 @@ var yAxisRight = d3.svg.axis()
     .orient("right");
 
 var line0 = d3.svg.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y0(d.value); })
+    .x(function(d) { return x(d.Date); })
+    .y(function(d) { return y0(d.TWI); })
 var line1 = d3.svg.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y0(d.value); })
+    .x(function(d) { return x(d.Date); })
+    .y(function(d) { return y1(d['90Day']); })
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -50,16 +50,19 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
       d.TWI = +d.TWI;
     });
 
-    console.log(data);
+    // console.log(data);
 
-    x.domain(d3.extent(data, function(d) { return d.date; }));
-    y0.domain(d3.extent(data, function(d) { return d.value; }));
+    x.domain(d3.extent(data, function(d) { return d.Date; }));
+    y0.domain(d3.extent(data, function(d) { return d.TWI; }));
+    y1.domain(d3.extent(data, function(d) { return d['90Day']; }));
 
+    //draw x axis
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
+    //draw both y axes
     svg.append("g")
         .attr("class", "y axis")
         .call(yAxisLeft)
@@ -69,13 +72,19 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
         // .attr("dy", ".71em")
         // .style("text-anchor", "end")
         // .text("$b");
+    svg.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(" + width + " ,0)")  
+        .call(yAxisRight)
+      .append("text");
 
+    //draw TWI
     svg.append("path")
         .datum(data)
-        .attr("class", "line")
+        .attr("class", "line0")
         .transition()
         .ease("linear")
-        .duration(3000)
+        .duration(1000)
         //SMOOTH ANIMATIONs
         .attrTween("d", function(d){
           var i = d3.scale.linear()
@@ -85,20 +94,55 @@ d3.csv("../data/OCR_Test_2014.csv", function(error, data) {
           return function(t) {
             var flooredX = Math.floor(i(t));
             var interpolatedLine = data.slice(0, flooredX);
-
+            // console.log(interpolatedLine);
 
             if(flooredX > 0 && flooredX < data.length) {
               var weight = i(t) - flooredX;
-              var weightedY = data[flooredX].value * weight + data[flooredX-1].value * (1-weight);
-              var weightedX = data[flooredX].date * weight + data[flooredX-1].date * (1-weight);
+              var weightedY = data[flooredX].TWI * weight + data[flooredX-1].TWI * (1-weight);
+              var weightedX = data[flooredX].Date * weight + data[flooredX-1].Date * (1-weight);
               // console.log(weightedX, weightedY)
               // console.log(data)
-              interpolatedLine.push( {"date":weightedX, "value":weightedY} );
+              interpolatedLine.push( {"Date":weightedX, "TWI":weightedY} );
             }
 
             // console.log(interpolatedLine)
 
             return line0(interpolatedLine);
+          }
+
+        });
+
+    //draw 90Day
+    svg.append("path")
+        .datum(data)
+        .attr("class", "line1")
+        .transition()
+        .delay(1000)
+        .ease("linear")
+        .duration(1000)
+        //SMOOTH ANIMATIONs
+        .attrTween("d", function(d){
+          var i = d3.scale.linear()
+            .domain([0,1])
+            .range([1, data.length + 1]);
+
+          return function(t) {
+            var flooredX = Math.floor(i(t));
+            var interpolatedLine = data.slice(0, flooredX);
+            // console.log(interpolatedLine);
+
+            if(flooredX > 0 && flooredX < data.length) {
+              var weight = i(t) - flooredX;
+              var weightedY = data[flooredX]['90Day'] * weight + data[flooredX-1]['90Day'] * (1-weight);
+              var weightedX = data[flooredX].Date * weight + data[flooredX-1].Date * (1-weight);
+              // console.log(weightedX, weightedY)
+              // console.log(data)
+              interpolatedLine.push( {"Date":weightedX, "90Day":weightedY} );
+            }
+
+            // console.log(interpolatedLine)
+
+            return line1(interpolatedLine);
           }
 
         });
