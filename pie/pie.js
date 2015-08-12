@@ -16,9 +16,7 @@ var pie = d3.layout.pie()
 
 var svg = d3.select("#graph").append("svg")
     .attr("width", width)
-    .attr("height", height)
-  .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+    .attr("height", height);
 
 var color = d3.scale.ordinal()
     .domain(function(d) { return d; })
@@ -27,18 +25,25 @@ var color = d3.scale.ordinal()
 var graphTransitionTime = 1000;
 var timePerRadian = graphTransitionTime / (Math.PI * 2);
 
-//csv parsing and graph building
+//csv parsing
+var pieData;
 d3.csv("../data/chart-12-pie.csv", function(error, data) {
-
     data.forEach(function(d) {
       d.Percentage = +d.Percentage;
     });
 
-    // console.log(data);
+    pieData = data;
+});
 
+//graph building func
+var renderPie = function(data, svg) {
 
+    //fix this, it's ugly
+    d3.selectAll(svg[0][0].childNodes).remove();
 
-    var g = svg.selectAll(".arc")
+    var g = svg.append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+    .selectAll(".arc")
       .data(pie(data))
     .enter().append("g")
       .attr("class", "arc");
@@ -58,7 +63,6 @@ d3.csv("../data/chart-12-pie.csv", function(error, data) {
         return (d.endAngle - d.startAngle) * timePerRadian;
       })
       .attrTween('d', function(d) {
-        console.log(d);
         var i = d3.interpolate(d.startAngle, d.endAngle);
         return function(t) {
           d.endAngle = i(t);
@@ -77,41 +81,43 @@ d3.csv("../data/chart-12-pie.csv", function(error, data) {
       .style("text-anchor", "middle")
       .text(function(d) { return d.data.Percentage + '%'; });
 
+};
+
+//determine if any part of DOM element is in view
+var isScrolledIntoView = function(element) {
+    var elementTop = element.getBoundingClientRect().top;
+    var elementBottom = element.getBoundingClientRect().bottom;
+    return elementTop <= window.innerHeight && elementBottom >= 0;
+};
+
+//scroll event listening, efficiency with animationframe
+(function() {
+    var throttle = function(type, name, obj) {
+        var obj = obj || window;
+        var running = false;
+        var func = function() {
+            if (running) { return; }
+            running = true;
+            requestAnimationFrame(function() {
+                obj.dispatchEvent(new CustomEvent(name));
+                running = false;
+            });
+        };
+        obj.addEventListener(type, func);
+    };
+
+    throttle("scroll", "optimizedScroll");
+})();
+
+//listen to scroll event, redraw graph if graph element within viewport
+var inViewBool = false;
+window.addEventListener("optimizedScroll", function() {
+  var graphInView = isScrolledIntoView(document.getElementById("graph"))
+  if (graphInView != inViewBool) {
+    inViewBool = graphInView;
+    if (inViewBool) {
+      renderPie(pieData, svg)
+      console.log('rendering graph')
+    }
+  };
 });
-
-//form submission logic
-d3.select("#form")
-  .on("submit", function() {
-    d3.event.preventDefault();
-    var data = d3.select("#csvData").node().value; //.node() selects the first result of the selection
-
-    console.log(d3.csv.parseRows(data));
-});
-
-
-/* DUMMY DATA + BUILDING */
-// var data = [
-//     2704659,
-//     4499890,
-//     2159981,
-//     3853788,
-//     14106543,
-//     8819342,
-//     612463
-// ];
-//graph building
-// (function() {
-//     console.log(data);
-
-//     var g = svg.selectAll(".arc")
-//       .data(pie(data))
-//     .enter().append("g")
-//       .attr("class", "arc");
-
-//     g.append("path")
-//       .attr("d", arc)
-//       // .style("fill", "black");
-//       .style("fill", function(d,i) {
-//         return scale(i);
-//       })
-// })();
